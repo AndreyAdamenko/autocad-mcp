@@ -53,6 +53,19 @@ is deliberately not flagged. Run it after touching the flagged list.
   `truncated`, and `stopped_by` rather than implying a full walk. A layout whose
   plot device is missing reports a null size, not a zero one.
 
+## Why `mcp` is capped below 2.0
+
+`mcp` 2.0 removed the low-level `Server.list_tools()` / `Server.call_tool()`
+decorator API this server is built on, and renamed `Tool.inputSchema` to
+`input_schema` (keeping the old name only as a serialisation alias). Importing
+`autocad_direct.server` against 2.0 raises
+`AttributeError: 'Server' object has no attribute 'list_tools'`, so the
+dependency is pinned `<2` until someone ports it.
+
+CI imports the server module as its own step for this reason. The unit tests
+only reach `acad_core`, so they stayed green while the entry point was broken —
+which is how this was missed the first time.
+
 ## Scope
 
 There is intentionally no `run_command` / `SendCommand` tool, and a pull request
