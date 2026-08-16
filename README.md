@@ -338,3 +338,14 @@ copy_entity {"handle":"<handle>", "displacement_mm":[150,0]}
 move_entity {"handle":"<copy handle>", "from_mm":[0,0], "to_mm":[0,80]}
 erase_entity {"handle":"<copy handle>"}
 ```
+
+---
+
+## License
+
+Apache License 2.0 — see [LICENSE](LICENSE). Copyright 2026 JIALE LIU.
+
+Use it, change it, ship it in a commercial product; that is all allowed. What
+the license does require, if you redistribute this or anything derived from it,
+is that you keep the copyright notices, pass on a copy of the [NOTICE](NOTICE)
+file, and state which files you changed.
