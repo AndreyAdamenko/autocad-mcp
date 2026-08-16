@@ -7,8 +7,8 @@ name = "autocad-mcp"
 version = "0.1.0"
 description = "MCP server that drives a running AutoCAD 2026 session through Autodesk's ActiveX/COM API"
 readme = "README.md"
-license = "MIT"
-license-files = ["LICENSE"]
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.10"
 authors = [{ name = "JIALE LIU" }]
 keywords = ["mcp", "model-context-protocol", "autocad", "cad", "activex", "com", "automation"]
