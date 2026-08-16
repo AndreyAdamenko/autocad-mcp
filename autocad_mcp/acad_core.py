@@ -1,4 +1,4 @@
-"""Shared AutoCAD COM helpers and the tool registry for autocad-direct.
+"""Shared AutoCAD COM helpers and the tool registry for autocad-mcp.
 
 This server deliberately attaches only to an AutoCAD session the user has
 already started.  It never starts AutoCAD, loads code into it, or exposes an
@@ -38,7 +38,7 @@ logging.basicConfig(
         RotatingFileHandler(LOG_PATH, maxBytes=2_000_000, backupCount=3, encoding="utf-8"),
     ],
 )
-logger = logging.getLogger("autocad-direct")
+logger = logging.getLogger("autocad-mcp")
 
 # Autodesk documents AutoCAD 2026 as Application.25.1.  The unversioned and
 # 25.0-compatible IDs are fallbacks for an installation whose registration was
@@ -151,7 +151,7 @@ def com_apartment() -> Iterator[None]:
     and invalidates every proxy obtained under it, so the pairing forced a fresh
     running-object-table lookup per call and made caching anything impossible.
     A long-lived STA host is meant to initialise once and stay up, which is what
-    the adjacent solidworks-direct server does.
+    the adjacent solidworks-mcp server does.
     """
 
     if not getattr(_com_state, "initialised", False):

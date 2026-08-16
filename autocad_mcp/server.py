@@ -13,7 +13,7 @@ from mcp.types import ImageContent, TextContent, Tool
 from .acad_core import HANDLERS, TOOLS, com_error, logger, result
 
 
-server = Server("autocad-direct")
+server = Server("autocad-mcp")
 
 # AutoCAD ActiveX is a single STA automation server.  Interleaving two drawing
 # mutations can corrupt the implicit active document/selection state, so tools
@@ -54,7 +54,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent | 
 
 
 async def main() -> None:
-    logger.info("autocad-direct starting with %d tools", len(TOOLS))
+    logger.info("autocad-mcp starting with %d tools", len(TOOLS))
     async with stdio_server() as (read_stream, write_stream):
         await server.run(read_stream, write_stream, server.create_initialization_options())
 

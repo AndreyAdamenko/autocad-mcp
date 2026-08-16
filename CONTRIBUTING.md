@@ -58,7 +58,7 @@ is deliberately not flagged. Run it after touching the flagged list.
 `mcp` 2.0 removed the low-level `Server.list_tools()` / `Server.call_tool()`
 decorator API this server is built on, and renamed `Tool.inputSchema` to
 `input_schema` (keeping the old name only as a serialisation alias). Importing
-`autocad_direct.server` against 2.0 raises
+`autocad_mcp.server` against 2.0 raises
 `AttributeError: 'Server' object has no attribute 'list_tools'`, so the
 dependency is pinned `<2` until someone ports it.
 

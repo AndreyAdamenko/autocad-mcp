@@ -3,7 +3,7 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "autocad-direct"
+name = "autocad-mcp"
 version = "0.1.0"
 description = "MCP server that drives a running AutoCAD 2026 session through Autodesk's ActiveX/COM API"
 readme = "README.md"
@@ -34,11 +34,11 @@ dependencies = [
 ]
 
 [project.scripts]
-autocad-direct = "autocad_direct.server:run"
+autocad-mcp = "autocad_mcp.server:run"
 
 [project.urls]
-Homepage = "https://github.com/limuzi013/autocad-direct"
-Issues = "https://github.com/limuzi013/autocad-direct/issues"
+Homepage = "https://github.com/limuzi013/autocad-mcp"
+Issues = "https://github.com/limuzi013/autocad-mcp/issues"
 
 [tool.setuptools]
-packages = ["autocad_direct"]
+packages = ["autocad_mcp"]

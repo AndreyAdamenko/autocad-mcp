@@ -1,4 +1,4 @@
-"""Offline tests for autocad-direct.
+"""Offline tests for autocad-mcp.
 
 Everything here runs without AutoCAD installed or running: the COM surface is
 faked, so the parts that can be checked on a laptop -- unit conversion, path
@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from autocad_direct import acad_core  # noqa: E402  (path set above)
+from autocad_mcp import acad_core  # noqa: E402  (path set above)
 
 
 def variant_values(variant: object) -> tuple[float, ...]:

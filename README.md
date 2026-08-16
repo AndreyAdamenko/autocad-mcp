@@ -1,9 +1,9 @@
-# autocad-direct
+# autocad-mcp
 
-`autocad-direct` is a local, stdio-only MCP server that drives a **running**
+`autocad-mcp` is a local, stdio-only MCP server that drives a **running**
 AutoCAD 2026 session through Autodesk's documented ActiveX/COM API. It follows
 the same model as its sibling
-[`solidworks-direct`](https://github.com/limuzi013/solidworks-direct):
+[`solidworks-mcp`](https://github.com/limuzi013/solidworks-mcp):
 
 - It attaches to AutoCAD already running on the Windows desktop; it never starts
   the application.
@@ -13,7 +13,7 @@ the same model as its sibling
   angles are in **degrees**.
 - Written DWG/DXF files are restricted to `ACAD_MCP_OUTPUT_ROOT`.
 
-<!-- mcp-name: io.github.limuzi013/autocad-direct -->
+<!-- mcp-name: io.github.limuzi013/autocad-mcp -->
 
 ## Units and angles
 
@@ -38,17 +38,17 @@ inserts it at actual size whatever `INSUNITS` says.
 ## Install
 
 ```powershell
-git clone https://github.com/limuzi013/autocad-direct.git
-cd autocad-direct
+git clone https://github.com/limuzi013/autocad-mcp.git
+cd autocad-mcp
 py -3 -m venv .venv
 .venv\Scripts\python.exe -m pip install .
 ```
 
-That puts an `autocad-direct` command in the environment, which is what the MCP
+That puts an `autocad-mcp` command in the environment, which is what the MCP
 host runs. `uv` works too, if you prefer it:
 
 ```powershell
-uv tool install --from git+https://github.com/limuzi013/autocad-direct autocad-direct
+uv tool install --from git+https://github.com/limuzi013/autocad-mcp autocad-mcp
 ```
 
 ### Claude Code / Claude Desktop
@@ -56,8 +56,8 @@ uv tool install --from git+https://github.com/limuzi013/autocad-direct autocad-d
 ```json
 {
   "mcpServers": {
-    "autocad-direct": {
-      "command": "C:\\path\\to\\.venv\\Scripts\\autocad-direct.exe"
+    "autocad-mcp": {
+      "command": "C:\\path\\to\\.venv\\Scripts\\autocad-mcp.exe"
     }
   }
 }
@@ -66,8 +66,8 @@ uv tool install --from git+https://github.com/limuzi013/autocad-direct autocad-d
 ### Codex CLI (`~/.codex/config.toml`)
 
 ```toml
-[mcp_servers.autocad-direct]
-command = 'C:\path\to\.venv\Scripts\autocad-direct.exe'
+[mcp_servers.autocad-mcp]
+command = 'C:\path\to\.venv\Scripts\autocad-mcp.exe'
 ```
 
 Use single-quoted TOML strings so backslashes survive. Restart the MCP host after
@@ -78,12 +78,12 @@ but the dependencies — `server.py` at the repository root exists for exactly
 that:
 
 ```toml
-[mcp_servers.autocad-direct]
+[mcp_servers.autocad-mcp]
 command = 'C:\path\to\.venv\Scripts\python.exe'
-args = ['C:\path\to\autocad-direct\server.py']
+args = ['C:\path\to\autocad-mcp\server.py']
 ```
 
-`solidworks-direct` needs the same three packages, so a single virtual
+`solidworks-mcp` needs the same three packages, so a single virtual
 environment can serve both servers.
 
 ## Tools
@@ -239,7 +239,7 @@ The suite fakes the COM surface, so it runs on any machine — AutoCAD does not
 have to be installed, let alone running:
 
 ```powershell
-cd C:\path\to\autocad-direct
+cd C:\path\to\autocad-mcp
 $env:PYTHONPATH = "."
 .\.venv\Scripts\python.exe -m unittest discover -s tests
 ```

@@ -1,6 +1,6 @@
 """Launcher for the clone-and-point-at-a-path install.
 
-A package install (``pip install .``, ``uvx``) gets the ``autocad-direct``
+A package install (``pip install .``, ``uvx``) gets the ``autocad-mcp``
 console script instead. This file exists so that an MCP host configured with the
 absolute path to a checkout keeps working without one, which is how the server
 was set up before it was packaged.
@@ -13,7 +13,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from autocad_direct.server import run  # noqa: E402  (path set above)
+from autocad_mcp.server import run  # noqa: E402  (path set above)
 
 if __name__ == "__main__":
     run()

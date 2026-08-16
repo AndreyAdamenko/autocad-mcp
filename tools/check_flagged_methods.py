@@ -31,7 +31,7 @@ from acax_probe import find_library  # noqa: E402  (path set above)
 import pythoncom  # noqa: E402
 
 PARAMFLAG_OUT = 0x02
-SOURCE = Path(__file__).resolve().parents[1] / "autocad_direct" / "acad_core.py"
+SOURCE = Path(__file__).resolve().parents[1] / "autocad_mcp" / "acad_core.py"
 
 
 def flagged_names(source: str) -> set[str]:

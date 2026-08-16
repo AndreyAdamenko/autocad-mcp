@@ -30,7 +30,7 @@ jobs:
         # The tests only reach acad_core, so nothing else here would notice an
         # incompatible mcp release breaking the server's own entry point --
         # which is exactly how mcp 2.0 slipped past a green build once.
-        run: python -c "from autocad_direct import server; print(len(server.TOOLS), 'tools registered')"
+        run: python -c "from autocad_mcp import server; print(len(server.TOOLS), 'tools registered')"
 
       - name: Run the offline tests
         # The suite fakes the COM surface, so AutoCAD does not have to be
