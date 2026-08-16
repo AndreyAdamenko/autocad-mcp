@@ -1,0 +1,81 @@
+name: Bug report
+description: A tool did something other than what it reported
+labels: [bug]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The offline tests cover argument validation and unit conversion, so the
+        reports worth filing are usually about what AutoCAD did with a call that
+        the server thought succeeded. Read the drawing back through COM if you can.
+
+  - type: input
+    id: acad-version
+    attributes:
+      label: AutoCAD version and UI language
+      placeholder: "2026 (25.1s), Chinese UI"
+    validations:
+      required: true
+
+  - type: input
+    id: insunits
+    attributes:
+      label: Drawing INSUNITS
+      description: Reported by get_active_drawing_info. Unit bugs usually hide here.
+      placeholder: "4 (millimetres)"
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      placeholder: "3.12.4"
+    validations:
+      required: true
+
+  - type: input
+    id: host
+    attributes:
+      label: MCP host
+      placeholder: "Claude Desktop / Claude Code / Codex CLI"
+    validations:
+      required: true
+
+  - type: textarea
+    id: call
+    attributes:
+      label: The tool call
+      description: Tool name and arguments, as JSON.
+      render: json
+    validations:
+      required: true
+
+  - type: textarea
+    id: reply
+    attributes:
+      label: What the tool replied
+      render: json
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What the drawing actually held afterwards
+      description: >
+        Output from query_entities, list_layers, list_layouts, a screenshot, or
+        the entity properties read back independently of the tool that wrote them.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: preconditions
+    attributes:
+      label: Preconditions
+      options:
+        - label: Full AutoCAD 2026 (not LT), already running with an active drawing
+          required: true
+        - label: This is not a request for a run_command / SendCommand tool
+          required: true

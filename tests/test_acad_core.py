@@ -8,6 +8,7 @@ containment, argument validation, tool schemas -- actually are.
 from __future__ import annotations
 
 import math
+import sys
 import tempfile
 import unittest
 from collections import Counter
@@ -15,7 +16,11 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-import acad_core
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from autocad_direct import acad_core  # noqa: E402  (path set above)
 
 
 def variant_values(variant: object) -> tuple[float, ...]:

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.limuzi013/autocad-direct",
+  "title": "AutoCAD Direct",
+  "description": "Drives a running AutoCAD 2026 session over its ActiveX/COM API, in millimetres and degrees",
+  "repository": {
+    "url": "https://github.com/limuzi013/autocad-direct",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "autocad-direct",
+      "version": "0.1.0",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "ACAD_MCP_OUTPUT_ROOT",
+          "description": "Written DWG/DXF files are restricted to this directory; save_drawing_as refuses paths outside it.",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "ACAD_MCP_TYPELIB",
+          "description": "Overrides the ActiveX type-library location. Otherwise the newest acax*.tlb under the Autodesk Shared directory is used.",
+          "isRequired": false,
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}

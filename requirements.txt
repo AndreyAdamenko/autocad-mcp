@@ -1,3 +1,0 @@
-mcp>=1.2
-pywin32>=306
-pillow>=10

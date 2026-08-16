@@ -13,6 +13,8 @@ the same model as its sibling
   angles are in **degrees**.
 - Written DWG/DXF files are restricted to `ACAD_MCP_OUTPUT_ROOT`.
 
+<!-- mcp-name: io.github.limuzi013/autocad-direct -->
+
 ## Units and angles
 
 AutoCAD stores model geometry as numbers plus a drawing-unit setting. The server
@@ -32,17 +34,21 @@ inserts it at actual size whatever `INSUNITS` says.
 - Windows with **full AutoCAD 2026** installed (not AutoCAD LT)
 - AutoCAD open with an active drawing before calling a tool
 - Python 3.10+
-- `pip install -r requirements.txt` (`mcp`, `pywin32`, `pillow`)
 
 ## Install
 
-```bash
+```powershell
 git clone https://github.com/limuzi013/autocad-direct.git
+cd autocad-direct
+py -3 -m venv .venv
+.venv\Scripts\python.exe -m pip install .
 ```
 
+That puts an `autocad-direct` command in the environment, which is what the MCP
+host runs. `uv` works too, if you prefer it:
+
 ```powershell
-py -3 -m venv .venv
-.venv\Scripts\python.exe -m pip install -r autocad-direct\requirements.txt
+uv tool install --from git+https://github.com/limuzi013/autocad-direct autocad-direct
 ```
 
 ### Claude Code / Claude Desktop
@@ -51,8 +57,7 @@ py -3 -m venv .venv
 {
   "mcpServers": {
     "autocad-direct": {
-      "command": "C:\\path\\to\\.venv\\Scripts\\python.exe",
-      "args": ["C:\\path\\to\\autocad-direct\\server.py"]
+      "command": "C:\\path\\to\\.venv\\Scripts\\autocad-direct.exe"
     }
   }
 }
@@ -62,12 +67,21 @@ py -3 -m venv .venv
 
 ```toml
 [mcp_servers.autocad-direct]
-command = 'C:\path\to\.venv\Scripts\python.exe'
-args = ['C:\path\to\autocad-direct\server.py']
+command = 'C:\path\to\.venv\Scripts\autocad-direct.exe'
 ```
 
 Use single-quoted TOML strings so backslashes survive. Restart the MCP host after
 editing its configuration.
+
+An MCP host can also be pointed straight at a checkout, with nothing installed
+but the dependencies — `server.py` at the repository root exists for exactly
+that:
+
+```toml
+[mcp_servers.autocad-direct]
+command = 'C:\path\to\.venv\Scripts\python.exe'
+args = ['C:\path\to\autocad-direct\server.py']
+```
 
 `solidworks-direct` needs the same three packages, so a single virtual
 environment can serve both servers.
