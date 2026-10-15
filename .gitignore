@@ -7,3 +7,7 @@ server.log
 .idea/
 build/
 dist/
+artifacts/
+evidence/
+*.dwl
+*.dwl2

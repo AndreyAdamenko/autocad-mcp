@@ -1,0 +1,16 @@
+# Configuration for this Windows computer. Restart the MCP host after adding it.
+[mcp_servers.autocad_2014]
+command = 'C:\Python312\python.exe'
+args = ['-X', 'utf8', 'C:\Users\a.adamenko\source\repos\AutocadMCP\server.py']
+cwd = 'C:\Users\a.adamenko\source\repos\AutocadMCP'
+startup_timeout_sec = 30
+tool_timeout_sec = 1800
+
+[mcp_servers.autocad_2014.env]
+ACAD_MCP_READ_ONLY = '1'
+ACAD_MCP_PROGID = 'AutoCAD.Application.19.1'
+ACAD_MCP_EXPECTED_VERSION = '19.1'
+ACAD_MCP_TYPELIB = 'C:\Program Files\Common Files\Autodesk Shared\acax19enu.tlb'
+ACAD_MCP_BLENDER = 'C:\Program Files\Blender Foundation\Blender 5.2\blender.exe'
+ACAD_MCP_OUTPUT_ROOT = 'C:\Users\a.adamenko\source\repos\AutocadMCP\artifacts'
+PYTHONUTF8 = '1'

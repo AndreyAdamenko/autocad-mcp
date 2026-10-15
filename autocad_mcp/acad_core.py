@@ -28,7 +28,9 @@ import ctypes
 import logging
 import math
 import os
+import re
 import threading
+from functools import wraps
 from contextlib import contextmanager
 from ctypes import wintypes
 from io import BytesIO
@@ -54,10 +56,23 @@ logging.basicConfig(
 )
 logger = logging.getLogger("autocad-mcp")
 
-# Autodesk documents AutoCAD 2026 as Application.25.1.  The unversioned and
-# 25.0-compatible IDs are fallbacks for an installation whose registration was
-# repaired or migrated from an earlier release.
-PROG_IDS = ("AutoCAD.Application.25.1", "AutoCAD.Application.25", "AutoCAD.Application")
+# Prefer 2014. The actual Version is checked even for an unversioned ProgID.
+PROG_IDS = ("AutoCAD.Application.19.1", "AutoCAD.Application.19", "AutoCAD.Application")
+MUTATING_TOOLS = {
+    "create_new_drawing", "open_drawing", "save_active_drawing", "save_drawing_as",
+    "create_layer", "set_current_layer", "set_layer_properties", "set_entity_layer",
+    "draw_line", "draw_circle", "draw_arc", "draw_ellipse", "draw_polyline", "draw_point",
+    "draw_text", "insert_block", "add_linear_dimension", "erase_entity", "move_entity",
+    "copy_entity", "zoom_extents",
+}
+
+
+def read_only_mode() -> bool:
+    return os.environ.get("ACAD_MCP_READ_ONLY", "1") != "0"
+
+
+def tool_enabled(name: str) -> bool:
+    return not read_only_mode() or name not in MUTATING_TOOLS
 
 # One drawing unit of each INSUNITS code, expressed in millimetres.  The scale
 # factor is derived from this table rather than written directly, because a
@@ -135,8 +150,13 @@ def tool(
                 },
             )
         )
-        HANDLERS[name] = fn
-        return fn
+        @wraps(fn)
+        def guarded(arguments: dict[str, Any]) -> dict[str, Any]:
+            if not tool_enabled(name):
+                raise RuntimeError(f"{name} is disabled by ACAD_MCP_READ_ONLY. Source DWGs must not be modified.")
+            return fn(arguments)
+        HANDLERS[name] = guarded
+        return guarded
 
     return decorator
 
@@ -178,9 +198,15 @@ def running_app() -> Any:
     """Return a running AutoCAD instance without ever launching one."""
 
     errors: list[str] = []
-    for prog_id in PROG_IDS:
+    candidates = (os.environ["ACAD_MCP_PROGID"],) if os.environ.get("ACAD_MCP_PROGID") else PROG_IDS
+    expected = os.environ.get("ACAD_MCP_EXPECTED_VERSION", "19.1")
+    for prog_id in candidates:
         try:
-            return win32com.client.GetActiveObject(prog_id)
+            app = win32com.client.GetActiveObject(prog_id)
+            version = str(app.Version)
+            if expected and not re.match(re.escape(expected) + r"(?:\D|$)", version):
+                raise RuntimeError(f"Expected AutoCAD {expected}, received {version}")
+            return app
         except Exception as exc:
             errors.append(f"{prog_id}: {exc}")
     # Report what each ProgID actually said.  "AutoCAD is not running" and
@@ -189,7 +215,7 @@ def running_app() -> Any:
     detail = "; ".join(errors)
     logger.info("No AutoCAD session found. Attempts: %s", detail)
     raise RuntimeError(
-        "No running AutoCAD session was found. Start AutoCAD 2026, open a drawing, "
+        "No matching running AutoCAD session was found. Start AutoCAD 2014, open a drawing, "
         f"and call autocad_status again. Connection attempts: {detail}"
     )
 
@@ -539,7 +565,8 @@ def save_drawing_as(arguments: dict[str, Any]) -> dict[str, Any]:
             # extension -- a file no DXF reader would accept.  A .dwg path keeps
             # the default on purpose, so a future release's native format is
             # still picked up without touching this code.
-            doc.SaveAs(str(target), AC_2018_DXF)
+            version = float(re.match(r"\d+(?:\.\d+)?", str(optional_value(optional_value(doc, "Application"), "Version", "25.1"))).group())
+            doc.SaveAs(str(target), 61 if version < 22 else AC_2018_DXF)
         else:
             doc.SaveAs(str(target))
         return result(

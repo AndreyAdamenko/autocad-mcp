@@ -22,6 +22,7 @@ containment, argument validation, tool schemas -- actually are.
 from __future__ import annotations
 
 import math
+import os
 import sys
 import tempfile
 import unittest
@@ -35,6 +36,17 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from autocad_mcp import acad_core  # noqa: E402  (path set above)
+
+
+def setUpModule():
+    # These legacy tests deliberately exercise drawing mutations on fake COM.
+    global legacy_mode
+    legacy_mode = mock.patch.dict(os.environ, {"ACAD_MCP_READ_ONLY": "0"})
+    legacy_mode.start()
+
+
+def tearDownModule():
+    legacy_mode.stop()
 
 
 def variant_values(variant: object) -> tuple[float, ...]:

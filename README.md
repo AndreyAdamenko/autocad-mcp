@@ -1,5 +1,20 @@
 # autocad-mcp
 
+## AutoCAD 2014 → MCP → Blender adaptation
+
+This checkout defaults to **read-only AutoCAD 2014 (19.1)**. See the
+[integration guide](docs/INTEGRATION_RU.md), [initial audit](docs/AUDIT_2014.md)
+and [actual test results](docs/VALIDATION_RU.md). A real two-floor partial
+[architectural reconstruction](docs/ARCHITECTURAL_RECONSTRUCTION_RU.md) was built
+through MCP and reopened in Blender; unresolved parts are explicitly reported.
+The accepted exterior overview is now `artifacts/erdaut_overall_view.blend`:
+1,121 verified solid objects, 37 window assemblies and 22 structural columns.
+See the [source-folder research and overview scope](docs/SPZ_RESEARCH_RU.md)
+for actual reopen checks, source preservation evidence and simplifications.
+Mutation tools are hidden and
+blocked unless `ACAD_MCP_READ_ONLY=0` is explicitly set. The new pipeline never
+converts or exports DWG. The upstream overview below describes legacy behaviour.
+
 `autocad-mcp` is a local, stdio-only MCP server that drives a **running**
 AutoCAD 2026 session through Autodesk's documented ActiveX/COM API. It follows
 the same model as its sibling

@@ -24,9 +24,9 @@ first, which is how `AcSaveAsType.ac2018_dxf = 65` and the `[out]` parameters on
     python tools\\acax_probe.py find AddArc             -> which interfaces expose a name
     python tools\\acax_probe.py enum AcSaveAsType       -> an enum's members
 
-Set ACAD_MCP_TYPELIB to point at a specific .tlb; otherwise the newest
-acax*.tlb under the shared Autodesk folder is used, whatever its language
-suffix (acax25enu.tlb, acax25chs.tlb, ...).
+Set ACAD_MCP_TYPELIB to point at a specific .tlb; otherwise acax19*.tlb under
+the shared Autodesk folder is used (English first). ACAD_MCP_TYPELIB_MAJOR
+selects a different release explicitly; a newer installed TrueView is ignored.
 """
 
 from __future__ import annotations
@@ -64,8 +64,9 @@ def find_library() -> Path:
             raise SystemExit(f"ACAD_MCP_TYPELIB does not name a file: {candidate}")
         return candidate
     if SHARED.is_dir():
-        # Newest release first; the language suffix does not change the API.
-        for candidate in sorted(SHARED.glob("acax*.tlb"), reverse=True):
+        # Match the target release, not a newer TrueView type library.
+        major = os.environ.get("ACAD_MCP_TYPELIB_MAJOR", "19")
+        for candidate in sorted(SHARED.glob(f"acax{major}*.tlb"), key=lambda p: ("enu" not in p.stem, p.name)):
             return candidate
     raise SystemExit(
         f"No acax*.tlb found under {SHARED}. Set ACAD_MCP_TYPELIB to the type library."

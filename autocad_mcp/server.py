@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A local, stdio-only MCP bridge for a running AutoCAD 2026 instance."""
+"""A local, stdio-only MCP bridge targeting AutoCAD 2014 and Blender."""
 
 from __future__ import annotations
 
@@ -24,7 +24,8 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import ImageContent, TextContent, Tool
 
-from .acad_core import HANDLERS, TOOLS, com_error, logger, result
+from .acad_core import HANDLERS, TOOLS, com_error, logger, result, tool_enabled
+from . import pipeline_tools  # noqa: F401 - register read-only pipeline tools
 
 
 server = Server("autocad-mcp")
@@ -37,7 +38,7 @@ COM_LOCK = asyncio.Lock()
 
 @server.list_tools()
 async def list_tools() -> list[Tool]:
-    return list(TOOLS)
+    return [t for t in TOOLS if tool_enabled(t.name)]
 
 
 @server.call_tool()

@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.limuzi013/autocad-mcp",
   "title": "AutoCAD MCP",
-  "description": "Drives a running AutoCAD 2026 session over its ActiveX/COM API, in millimetres and degrees",
+  "description": "Read-only AutoCAD 2014 COM geometry and Blender bpy integration over stdio MCP",
   "repository": {
     "url": "https://github.com/limuzi013/autocad-mcp",
     "source": "github"
@@ -27,7 +27,7 @@
         },
         {
           "name": "ACAD_MCP_TYPELIB",
-          "description": "Overrides the ActiveX type-library location. Otherwise the newest acax*.tlb under the Autodesk Shared directory is used.",
+          "description": "Overrides the ActiveX type-library location. Otherwise acax19*.tlb for AutoCAD 2014 is used.",
           "isRequired": false,
           "isSecret": false
         }

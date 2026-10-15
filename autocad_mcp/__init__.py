@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A local, stdio-only MCP server for a running AutoCAD 2026 session.
+"""A local, stdio-only MCP server targeting a running AutoCAD 2014 session.
 
 Importing this package is cheap: the COM connection is made on the first tool
 call, not at import time, so the offline tests and the packaging metadata can

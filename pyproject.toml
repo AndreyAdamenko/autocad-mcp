@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "autocad-mcp"
 version = "0.1.0"
-description = "MCP server that drives a running AutoCAD 2026 session through Autodesk's ActiveX/COM API"
+description = "Read-only AutoCAD 2014 COM geometry and Blender bpy integration over MCP"
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
