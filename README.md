@@ -1,5 +1,12 @@
 # autocad-mcp
 
+## Codex skill: reading and editing AutoCAD drawings
+
+The portable [autocad-drawings skill](skills/autocad-drawings/SKILL.md) covers
+DWG inspection, analysis, creation and editing through MCP; Blender is optional.
+See [installation on another computer](docs/SKILL_INSTALL_RU.md).
+Installing the skill does not install AutoCAD or enable write access.
+
 ## AutoCAD 2014 → MCP → Blender adaptation
 
 For a new drawing set, follow the reusable Russian

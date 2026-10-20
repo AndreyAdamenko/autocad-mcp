@@ -1,0 +1,12 @@
+interface:
+  display_name: "Чертежи AutoCAD"
+  short_description: "Чтение, анализ и редактирование DWG через MCP"
+  default_prompt: "Используй $autocad-drawings для чтения или редактирования моего чертежа AutoCAD и проверь результат."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "autocad_2014"
+      description: "Локальное подключение AutoCAD 2014 через ActiveX/COM"
+      transport: "stdio"
+policy:
+  allow_implicit_invocation: true
