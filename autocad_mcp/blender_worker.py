@@ -124,7 +124,7 @@ def verify(objects, records, manifest, issues, tolerance):
             source_box = [[x*manifest["mm_per_unit"] for x in p] for p in record["source_bbox"]]
             measured_box = bounds(observed)
             # Nonzero width/thickness extends the COM envelope beyond a path.
-            if g["kind"] in ("line", "arc", "circle", "ellipse", "face", "mesh"):
+            if g["kind"] in ("line", "arc", "circle", "ellipse", "face", "mesh") and not g.get('thickness'):
                 box_error = max(abs(a-b) for p,q in zip(source_box, measured_box) for a,b in zip(p,q))
                 item["source_bbox_error_mm"] = box_error
                 item["passed"] &= box_error <= tolerance*2
@@ -175,7 +175,8 @@ def verify(objects, records, manifest, issues, tolerance):
     accounted.update(r["id"] for _,_,r,_ in objects)
     accounted.update(i["source_id"] for i in issues)
     missing = sorted(source_ids-accounted)
-    return {"coordinate_checks_passed": not failures, "full_fidelity": not issues and not missing and not failures,
+    return {"coordinate_checks_passed": not failures, "full_fidelity": not manifest.get('selection') and not issues and not missing and not failures,
+            "source_scope": 'selected ModelSpace roots' if manifest.get('selection') else 'declared drawing spaces',
             "all_records_accounted_for": not missing, "missing_source_ids": missing,
             "tolerance_mm": tolerance, "checks": checks, "failures": failures,
             "block_envelope_checks": block_checks,

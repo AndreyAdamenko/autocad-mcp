@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 from .extraction import RecordAssembler
@@ -52,6 +53,8 @@ def build(scan, target, rules=None, tolerance_mm=0.25, timeout=900):
             send(header)
             while True:
                 batch = scan.batch(scan.page, limit=250, max_bytes=256000)
+                print(f"COM batch {batch['page']}: {batch['counts'].get('records', 0)} records; done={batch['done']}",
+                      file=sys.stderr, flush=True)
                 for record in assembler.accept(batch["fragments"]):
                     send({"kind": "record", "record": record})
                 if batch["done"]:

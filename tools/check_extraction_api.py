@@ -7,6 +7,9 @@ import pythoncom
 from acax_probe import find_library, each_type
 
 EXPECTED = {
+    'IAcadLine': ['StartPoint', 'EndPoint', 'Length', 'Thickness', 'Normal'],
+    "IAcadMLeader": ["TextString", "LeaderCount", "GetLeaderIndex", "GetLeaderLineIndexes", "GetLeaderLineVertices"],
+    "IAcadMLine": ["Coordinates", "StyleName", "MLineScale", "Justification"],
     "IAcadDocuments": ["Open", "Item", "Count"],
     "IAcadDocument": ["GetVariable", "HandleToObject", "ReadOnly", "ModelSpace", "Layouts", "Blocks"],
     "IAcadLWPolyline": ["Coordinates", "Normal", "Elevation", "Closed", "GetBulge", "GetWidth"],

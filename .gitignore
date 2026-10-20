@@ -11,3 +11,12 @@ artifacts/
 evidence/
 *.dwl
 *.dwl2
+node_modules/
+.sites-runtime/
+.vs/
+
+# Legacy local viewer copy; maintained in its own repository.
+/viewer/
+/tools/export_web_model.py
+/tools/package_web_viewer.py
+/tools/serve_viewer.py

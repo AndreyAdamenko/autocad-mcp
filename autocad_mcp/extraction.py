@@ -14,7 +14,7 @@ from collections import Counter
 from pathlib import Path
 
 from .acad_core import MM_PER_DRAWING_UNIT, com_apartment, running_app
-from .com_read import method, maybe, open_source, read, retry
+from .com_read import BUSY_HRESULTS, method, maybe, open_source, read, retry, typed_entity
 from .geometry import identity, insertion_matrix, multiply, ocs_basis, transform
 
 
@@ -37,8 +37,42 @@ def bbox(obj):
 def entity_geometry(obj, type_name):
     p = lambda key: [float(x) for x in read(obj, key)]
     f = lambda key: float(read(obj, key))
+    if type_name == 'AcDbMLeader':
+        # Read the callout anchors without creating/exploding leader graphics.
+        leaders, errors = [], []
+        count = int(maybe(obj, 'LeaderCount', 0))
+        seen = set()
+        # Deleted leaders leave sparse indexes; LeaderCount is not a maximum ID.
+        for candidate in range(64 + count * 8 if count else 0):
+            try:
+                index = int(method(obj, 'GetLeaderIndex', candidate))
+            except Exception as exc:
+                if getattr(exc, 'hresult', None) in BUSY_HRESULTS:
+                    raise
+                continue
+            if index in seen:
+                continue
+            seen.add(index)
+            try:
+                indexes = method(obj, 'GetLeaderLineIndexes', index)
+                for line_index in indexes:
+                    leaders.append({'index': int(line_index),
+                                    'vertices': triples(method(obj, 'GetLeaderLineVertices', int(line_index)))})
+            except Exception as exc:
+                errors.append(str(exc))
+            if len(seen) >= count:
+                break
+        if len(seen) < count:
+            errors.append('Leader indexes could not all be found within the bounded search')
+        return {'kind': 'unsupported', 'reason': 'MLeader graphics not reconstructed; semantic text and readable anchors retained',
+                'text': maybe(obj, 'TextString'), 'leader_lines': leaders, 'leader_errors': errors}
+    if type_name == 'AcDbMline':
+        return {'kind': 'unsupported', 'reason': 'MLine centre path retained; style offset graphics not reconstructed',
+                'centerline': triples(read(obj, 'Coordinates')), 'style': maybe(obj, 'StyleName'),
+                'scale': maybe(obj, 'MLineScale'), 'justification': maybe(obj, 'Justification')}
     if type_name == "AcDbLine":
-        return {"kind": "line", "start": p("StartPoint"), "end": p("EndPoint"), "length": f("Length")}
+        return {"kind": "line", "start": p("StartPoint"), "end": p("EndPoint"), "length": f("Length"),
+                'thickness': maybe(obj, 'Thickness', 0), 'normal': maybe(obj, 'Normal', [0, 0, 1])}
     if type_name in ("AcDbPolyline", "AcDb2dPolyline", "AcDb3dPolyline"):
         raw = [float(x) for x in read(obj, "Coordinates")]
         closed = bool(read(obj, "Closed"))
@@ -139,27 +173,48 @@ def drawing_spaces(doc, scope):
     result = []
     for i in range(int(read(layouts, "Count"))):
         layout = method(layouts, "Item", i)
-        result.append((str(read(layout, "Name")), read(layout, "Block")))
+        result.append((str(read(layout, "Name")), retry(lambda: read(layout, "Block"), required_metadata=True)))
     return result
 
 
-def iter_records(doc, spaces, mm_per_unit, max_depth=32):
+def iter_records(doc, spaces, mm_per_unit, max_depth=32, visible_only=False):
     scale = identity()
     for i in range(3):
         scale[i][i] = mm_per_unit if mm_per_unit is not None else 1
 
+    metadata_cache, geometry_cache, block_cache = {}, {}, {}
+    geometry_cache_bytes = 0
+
     def visit(obj, matrix, path, space, inherited_layer="0", ancestry=()):
-        handle, type_name = str(read(obj, "Handle")), str(read(obj, "ObjectName"))
-        layer = str(read(obj, "Layer"))
+        nonlocal geometry_cache_bytes
+        handle = str(read(obj, 'Handle'))
+        if handle not in metadata_cache:
+            if len(metadata_cache) >= 10000:
+                metadata_cache.pop(next(iter(metadata_cache)))
+            type_name = str(read(obj, 'ObjectName'))
+            visible = bool(maybe(obj, 'Visible', True))
+            metadata_cache[handle] = (type_name, str(read(obj, 'Layer')), visible,
+                                      None if visible_only and not visible else bbox(obj))
+        type_name, layer, visible, source_bbox = metadata_cache[handle]
         layer_effective = inherited_layer if layer == "0" else layer
         row = {"id": "/".join([space, *path, handle]), "handle": handle, "type": type_name,
                "layer": layer, "effective_layer": layer_effective, "space": space,
-               "world_matrix": matrix, "visible": bool(maybe(obj, "Visible", True)),
-               "source_bbox": bbox(obj), "status": "ok"}
+               "world_matrix": matrix, "visible": visible,
+               "source_bbox": source_bbox, "status": "ok"}
+        if visible_only and not visible:
+            row.update(status='excluded', geometry={'kind': 'excluded', 'reason': 'Explicitly excluded invisible block variant geometry'})
+            yield row
+            return
         try:
             if type_name in ("AcDbBlockReference", "AcDbMInsertBlock"):
+                obj = typed_entity(obj, type_name)
                 name = str(read(obj, "Name"))
-                block = method(read(doc, "Blocks"), "Item", name)
+                if name not in block_cache:
+                    if len(block_cache) >= 128:
+                        block_cache.pop(next(iter(block_cache)))
+                    block = method(read(doc, "Blocks"), "Item", name)
+                    block_cache[name] = (block, None)
+                block, children = block_cache[name]
                 normal = list(read(obj, "Normal"))
                 scales = [float(read(obj, k+"ScaleFactor")) for k in "XYZ"]
                 insertion, origin = list(read(obj, "InsertionPoint")), list(read(block, "Origin"))
@@ -170,6 +225,14 @@ def iter_records(doc, spaces, mm_per_unit, max_depth=32):
                      "rotation": rotation, "definition_units": maybe(block, "Units"),
                      "insunits_factor": maybe(obj, "InsUnitsFactor"), "xref": bool(read(block, "IsXRef")),
                      "child_count": int(read(block, "Count"))}
+                if bool(maybe(obj, 'IsDynamicBlock', False)):
+                    try:
+                        g['dynamic_properties'] = [{'name': str(read(prop, 'PropertyName')),
+                                                     'value': read(prop, 'Value'),
+                                                     'units_type': maybe(prop, 'UnitsType')}
+                                                    for prop in method(obj, 'GetDynamicBlockProperties')]
+                    except Exception as exc:
+                        g['dynamic_property_error'] = str(exc)
                 row["geometry"] = g
                 if name in ancestry or len(ancestry) >= max_depth:
                     row.update(status="unsupported", error="Block cycle or maximum nesting depth")
@@ -185,9 +248,12 @@ def iter_records(doc, spaces, mm_per_unit, max_depth=32):
                     return
                 yield row
                 child_matrix = multiply(matrix, insertion_matrix(insertion, normal, rotation, scales, origin))
+                if children is None and g['child_count'] <= 1024:
+                    children = [method(block, 'Item', i) for i in range(g['child_count'])]
+                    block_cache[name] = (block, children)
                 for j in range(g["child_count"]):
                     try:
-                        child = method(block, "Item", j)
+                        child = children[j] if children is not None else method(block,'Item',j)
                         yield from visit(child, child_matrix, [*path, handle], space, layer_effective, (*ancestry, name))
                     except Exception as exc:
                         yield {"id": row["id"]+f"/error-{j}", "status": "error", "error": str(exc), "space": space,
@@ -198,7 +264,20 @@ def iter_records(doc, spaces, mm_per_unit, max_depth=32):
                         for attr in method(obj, accessor):
                             yield from visit(attr, matrix, [*path, handle, accessor], space, layer_effective, ancestry)
                 return
-            row["geometry"] = entity_geometry(obj, type_name)
+            if handle in geometry_cache:
+                geometry = geometry_cache[handle][0]
+            else:
+                geometry = entity_geometry(typed_entity(obj, type_name), type_name)
+                size=len(json.dumps(geometry,ensure_ascii=True))
+                # Cache small repeated definition entities only. A huge mesh is
+                # streamed normally, without another long-lived cached copy.
+                if size <= 65536:
+                    while geometry_cache and (len(geometry_cache)>=4096 or geometry_cache_bytes+size>16*1024*1024):
+                        _,weight=geometry_cache.pop(next(iter(geometry_cache)))
+                        geometry_cache_bytes-=weight
+                    geometry_cache[handle]=(geometry,size)
+                    geometry_cache_bytes+=size
+            row["geometry"] = geometry
             if row["geometry"]["kind"] == "unsupported":
                 row["status"] = "unsupported"
         except Exception as exc:
@@ -254,6 +333,42 @@ class GeometryScan:
         self.counts, self.page, self.finished = Counter(), 0, False
         self.pending = None
         self.created = time.monotonic()
+
+    def select_root_handles(self, handles, evidence, visible_only=False):
+        """Restrict a fresh scan to proved ModelSpace roots, preserving provenance.
+
+        Selecting a child directly would lose its block transform and is rejected.
+        Fingerprints continue to cover the original spaces, not a synthetic list.
+        """
+        if self.page != 0 or self.pending is not None:
+            raise ValueError('Root selection requires a fresh scan')
+        if type(visible_only) is not bool:
+            raise ValueError('visible_only must be a boolean')
+        if not isinstance(handles, list) or not 1 <= len(handles) <= 10000 or not evidence:
+            raise ValueError('A nonempty bounded handle list and selection evidence are required')
+        if any(not isinstance(h, str) or not h or any(c not in '0123456789abcdefABCDEF' for c in h) for h in handles):
+            raise ValueError('Root selections use plain hexadecimal handles')
+        if len({h.upper() for h in handles}) != len(handles):
+            raise ValueError('Duplicate root handles are not allowed')
+        model = read(self.doc, 'ModelSpace')
+        owner = int(read(model, 'ObjectID'))
+        objects = []
+        for handle in handles:
+            obj = method(self.doc, 'HandleToObject', handle)
+            if int(read(obj, 'OwnerID')) != owner:
+                raise ValueError('Selected handle is not a ModelSpace root: ' + handle)
+            objects.append(obj)
+
+        class SelectedSpace:
+            Count = len(objects)
+
+            def Item(self, index):
+                return objects[index]
+
+        self.manifest['selection'] = {'root_handles': handles, 'evidence': str(evidence),
+                                      'selected_roots': len(objects), 'whole_drawing': False,
+                                      'visible_only': visible_only}
+        self.iterator = iter_records(self.doc, [('Model', SelectedSpace())], self.manifest['mm_per_unit'], visible_only=visible_only)
 
     def fingerprint(self):
         return (str(read(self.doc, "FullName")), bool(read(self.doc, "ReadOnly")),

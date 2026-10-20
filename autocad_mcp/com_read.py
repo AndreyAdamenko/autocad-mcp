@@ -5,10 +5,34 @@ import time
 from pathlib import Path
 
 import pythoncom
+import win32com.client
 
 from .acad_core import flag_methods
 
 BUSY_HRESULTS = {-2147418111, -2147417846}  # RPC_E_CALL_REJECTED / RETRYLATER
+
+
+def typed_entity(obj, type_name):
+    """Block.Item may return only IAcadEntity in makepy; bind the real interface."""
+    if type(obj).__name__ not in ('IAcadEntity', 'IAcadObject'):
+        return obj
+    interfaces = {
+        'AcDbLine': 'IAcadLine', 'AcDbPolyline': 'IAcadLWPolyline',
+        'AcDb2dPolyline': 'IAcadPolyline', 'AcDb3dPolyline': 'IAcad3DPolyline',
+        'AcDbCircle': 'IAcadCircle', 'AcDbArc': 'IAcadArc', 'AcDbEllipse': 'IAcadEllipse',
+        'AcDbPoint': 'IAcadPoint', 'AcDbSpline': 'IAcadSpline',
+        'AcDbText': 'IAcadText', 'AcDbMText': 'IAcadMText',
+        'AcDbAttributeDefinition': 'IAcadAttribute', 'AcDbAttribute': 'IAcadAttributeReference',
+        'AcDbBlockReference': 'IAcadBlockReference', 'AcDbMInsertBlock': 'IAcadMInsertBlock',
+        'AcDbFace': 'IAcad3DFace', 'AcDb3dFace': 'IAcad3DFace',
+        'AcDbSolid': 'IAcadSolid', 'AcDbTrace': 'IAcadTrace', 'AcDbPolygonMesh': 'IAcadPolygonMesh',
+        'AcDbMline': 'IAcadMLine', 'AcDbMLeader': 'IAcadMLeader',
+        'AcDbRotatedDimension': 'IAcadDimRotated', 'AcDbAlignedDimension': 'IAcadDimAligned',
+        'AcDbRadialDimension': 'IAcadDimRadial', 'AcDbDiametricDimension': 'IAcadDimDiametric',
+        'AcDb2LineAngularDimension': 'IAcadDimAngular', 'AcDb3PointAngularDimension': 'IAcadDim3PointAngular',
+    }
+    interface = interfaces.get(type_name)
+    return retry(lambda: win32com.client.CastTo(obj, interface)) if interface else obj
 
 
 def retry(call, timeout=12.0, required_metadata=False):

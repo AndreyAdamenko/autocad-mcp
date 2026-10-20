@@ -18,7 +18,9 @@ from .extraction import drawing_spaces, source_hash
 from .geometry import identity, insertion_matrix, multiply, transform
 
 
-def inspect_document(doc, include_dimensions=True):
+def inspect_document(doc, include_dimensions=True, scope='all'):
+    if scope not in ('all', 'model', 'paper'):
+        raise ValueError('Annotation scope must be all, model or paper')
     texts, dimensions, tables, issues = [], [], [], []
     types = Counter()
 
@@ -81,14 +83,17 @@ def inspect_document(doc, include_dimensions=True):
                 issues.append({"source_id":source_id,"type":kind,"error":str(exc)})
 
     seen_blocks=set()
-    for name,space in drawing_spaces(doc,"all"):
+    spaces = drawing_spaces(doc, 'model' if scope == 'model' else 'all')
+    for name,space in spaces:
+        if scope == 'paper' and name == 'Model':
+            continue
         walk(space,name,identity())
     title_pattern=r"план|разрез|фасад|сечени|высот|этаж|перекрыт|покрыти|кровл|ведомость.*чертеж"
     titles=[t for t in texts if re.search(title_pattern,t["text"],re.I)]
     return {"path":str(read(doc,"FullName")),"readonly":bool(read(doc,"ReadOnly")),
             "insunits":int(method(doc,"GetVariable","INSUNITS")),"types":dict(types),
             "titles":titles,"texts":texts,"dimensions":dimensions,"tables":tables,"issues":issues,
-            "dimensions_included":include_dimensions,
+            "dimensions_included":include_dimensions, 'scope': scope,
             "note":"Repeated block definitions catalogued once; use full geometry traversal for instance placement"}
 
 

@@ -2,6 +2,10 @@
 
 ## AutoCAD 2014 → MCP → Blender adaptation
 
+For a new drawing set, follow the reusable Russian
+[agent modeling workflow](docs/AGENT_MODELING_WORKFLOW_RU.md), including
+project-specific adaptation, source preservation and independent validation.
+
 This checkout defaults to **read-only AutoCAD 2014 (19.1)**. See the
 [integration guide](docs/INTEGRATION_RU.md), [initial audit](docs/AUDIT_2014.md)
 and [actual test results](docs/VALIDATION_RU.md). A real two-floor partial
@@ -11,6 +15,14 @@ The accepted exterior overview is now `artifacts/erdaut_overall_view.blend`:
 1,121 verified solid objects, 37 window assemblies and 22 structural columns.
 See the [source-folder research and overview scope](docs/SPZ_RESEARCH_RU.md)
 for actual reopen checks, source preservation evidence and simplifications.
+An [HVAC overview](docs/VENTILATION_RU.md) now adds 451 ventilation objects in
+`artifacts/ventilation/erdaut_with_ventilation.blend`. It preserves the original
+architecture; equipment/mounting assumptions, 39 clash candidates and 15 open
+measured-body ports remain explicit. This is not a coordinated fabrication model.
+The [browser model viewer](https://github.com/AndreyAdamenko/darbaza-5800-1.3-erdaut-model-viewer)
+is maintained in a separate repository, including GLB export, web hosting and
+Portainer Git polling. Its source and deployment files are not part of this MCP
+package. Any legacy local `viewer/` copy is ignored by Git.
 Mutation tools are hidden and
 blocked unless `ACAD_MCP_READ_ONLY=0` is explicitly set. The new pipeline never
 converts or exports DWG. The upstream overview below describes legacy behaviour.
